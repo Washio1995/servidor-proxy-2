@@ -1,0 +1,262 @@
+package proyecto2;
+
+import java.awt.BorderLayout;
+import java.awt.Desktop;
+import java.awt.TextArea;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.Socket;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Properties;
+
+import javax.mail.Message;
+import javax.mail.Multipart;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeBodyPart;
+import javax.mail.internet.MimeMessage;
+import javax.mail.internet.MimeMultipart;
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JFrame;
+import javax.swing.JLabel;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JPasswordField;
+import javax.swing.JScrollPane;
+import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
+
+import javax.swing.JTextArea;
+import javax.swing.JScrollBar;
+
+public class cliente  extends JDialog {
+	String serverAddres="";
+	BufferedReader in;//Para leer del teclado con el método readLine()
+    PrintWriter out;//Para poder mandar el string leido al servidor
+    private final JPanel contentPanel = new JPanel();
+    private JTextField tfRemitente;
+    private JPasswordField tfContrasenha;
+    private JTextField tfDestino;
+    private JTextField tfAsunto;
+    private JTextArea tfMensaje ;
+    private JButton btnEnviarCorreo;
+    private JButton btnPermiso;
+    /**
+	 * @wbp.parser.entryPoint
+	 */
+	public  cliente() {
+		setResizable(false);
+		setTitle("Enviar correo");
+		setBounds(100, 100, 667, 523);
+		getContentPane().setLayout(new BorderLayout());
+		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
+		getContentPane().add(contentPanel, BorderLayout.CENTER);
+		contentPanel.setLayout(null);
+		
+		JLabel lblCorreo = new JLabel("Correo:");
+		lblCorreo.setBounds(10, 21, 46, 14);
+		contentPanel.add(lblCorreo);
+		
+		JLabel lblContrasea = new JLabel("Contrasena");
+		lblContrasea.setBounds(10, 46, 87, 21);
+		contentPanel.add(lblContrasea);
+		
+		JLabel lblPara = new JLabel("Para:");
+		lblPara.setBounds(10, 128, 69, 21);
+		contentPanel.add(lblPara);
+		
+		JLabel lblAsunto = new JLabel("Asunto:");
+		lblAsunto.setBounds(10, 175, 46, 14);
+		contentPanel.add(lblAsunto);
+		
+		JLabel lblMensaje = new JLabel("Mensaje:");
+		lblMensaje.setBounds(10, 208, 46, 14);
+		contentPanel.add(lblMensaje);
+		
+		tfRemitente = new JTextField();
+		tfRemitente.setBounds(55, 15, 265, 27);
+		contentPanel.add(tfRemitente);
+		tfRemitente.setColumns(10);
+		
+		tfContrasenha = new JPasswordField();
+		tfContrasenha.setBounds(75, 46, 245, 21);
+		contentPanel.add(tfContrasenha);
+		tfContrasenha.setColumns(10);
+		
+		tfDestino = new JTextField();
+		tfDestino.setBounds(55, 128, 265, 21);
+		contentPanel.add(tfDestino);
+		tfDestino.setColumns(10);
+		
+		tfAsunto = new JTextField();
+		tfAsunto.setBounds(55, 172, 265, 27);
+		contentPanel.add(tfAsunto);
+		tfAsunto.setColumns(10);
+		
+		btnPermiso = new JButton("Enviar correo");
+		btnPermiso.setBounds(330, 17, 89, 23);
+		btnPermiso.setActionCommand("permiso");
+		btnPermiso.setEnabled(false);
+		btnPermiso.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				mandarCorreo();
+			}
+		});
+		contentPanel.add(btnPermiso);
+		
+		btnEnviarCorreo = new JButton("Enviar");
+		btnEnviarCorreo.setBounds(289, 78, 130, 43);
+		btnEnviarCorreo.setActionCommand("Enviar");
+		contentPanel.add(btnEnviarCorreo);
+		btnEnviarCorreo.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				out.println(tfMensaje.getText());
+				System.out.print("enviando mensaje");
+			}
+		});
+		
+		JScrollPane scrollPane = new JScrollPane();
+		scrollPane.setBounds(81, 219, 566, 235);
+		contentPanel.add(scrollPane);
+		
+		tfMensaje = new JTextArea();
+		scrollPane.setViewportView(tfMensaje);
+		tfMensaje.setLineWrap(true);;
+		
+           
+		
+		}
+	
+       /**
+     * Prompt for and return the address of the server.
+     */
+		  private String getServerAddress() {
+		        return JOptionPane.showInputDialog(
+		        		contentPanel,
+		            "Enter IP Address of the Server:",
+		            "Welcome to the Chatter",
+		            JOptionPane.QUESTION_MESSAGE);
+		    }
+
+    /**
+     * Prompt for and return the desired screen name.
+     */
+    
+
+	public  void run() throws IOException{
+		
+		String serverAddress = getServerAddress();
+		Socket clientSocket = new Socket(serverAddress,9000);
+		
+		in = new BufferedReader(new InputStreamReader(
+				 clientSocket.getInputStream())); //lee el socket ingresado.
+		 
+		        out = new PrintWriter(clientSocket.getOutputStream(), true);
+		        while (true) {
+		            String line = in.readLine();//lee los datos enviados de servidor
+		            if (line.startsWith("Error")) {//si hay palabras restringuidas es denegado 
+		            	JOptionPane.showMessageDialog(null, line);
+		        } else if (line.startsWith("correcto")) {//s ino hay palabras restringuidas es aceptado 
+		        	btnPermiso.setEnabled(true);
+	        } 
+	            }
+		           	        
+	}
+	private void mandarCorreo() {
+		  // El correo gmail de envío
+		  String correoEnvia = tfRemitente.getText();
+		  String claveCorreo = tfContrasenha.getText();
+		  
+		  // La configuración para enviar correo
+		  Properties properties = new Properties();
+		 
+		  properties.put("mail.smtp.host", "smtp.gmail.com");
+		  properties.put("mail.smtp.port", "587");
+
+		  properties.put("mail.smtp.starttls.enable", "true");
+		  properties.put("mail.smtp.auth", "true");
+		  properties.put("mail.user", correoEnvia);
+		  properties.put("mail.password", claveCorreo);
+		 
+		  // Obtener la sesion
+		  Session session = Session.getInstance(properties, null);
+		  int aviso = 0;
+		  try {
+		   // Crear el cuerpo del mensaje
+		   MimeMessage mimeMessage = new MimeMessage(session);
+		 
+		   // Agregar quien envía el correo
+		   mimeMessage.setFrom(new InternetAddress(correoEnvia));
+		    
+		   // Los destinatarios
+		   InternetAddress[] internetAddresses = {new InternetAddress(tfDestino.getText())};
+//		     new InternetAddress("correo2@gmail.com"),
+//		     new InternetAddress("correo3@gmail.com") };
+		 
+		   // Agregar los destinatarios al mensaje
+		   mimeMessage.setRecipients(Message.RecipientType.TO,
+		     internetAddresses);
+		 
+		   // Agregar el asunto al correo
+		   mimeMessage.setSubject(tfAsunto.getText());
+		 
+		   // Creo la parte del mensaje
+		   MimeBodyPart mimeBodyPart = new MimeBodyPart();
+		   mimeBodyPart.setText(tfMensaje.getText());
+		 
+		   
+
+			// Crear el multipart para agregar la parte del mensaje anterior
+			Multipart multipart = new MimeMultipart();
+			multipart.addBodyPart(mimeBodyPart);
+			
+		   
+		   // Agregar el multipart al cuerpo del mensaje
+		   mimeMessage.setContent(multipart);
+		 
+		   // Enviar el mensaje
+		   Transport transport = session.getTransport("smtp");
+		   transport.connect(correoEnvia, claveCorreo);
+		   transport.sendMessage(mimeMessage, mimeMessage.getAllRecipients());
+		   
+		   transport.close();
+		 
+		  } catch (Exception ex) {
+		   ex.printStackTrace();
+		   JOptionPane.showMessageDialog(null, "Error: "+ex.getMessage());
+		   aviso = 1;
+		  }
+		  if (aviso==0) {
+			  JOptionPane.showMessageDialog(null, "¡Correo electrónico enviado exitosamente!");
+		  }
+		 }
+
+	
+	private void AbrirURLGmail() {
+		
+		String URL = "https://www.google.com/settings/security/lesssecureapps";
+		try {
+			Desktop.getDesktop().browse(new URI(URL));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (URISyntaxException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
+	public static void main(String[] args) throws Exception {
+        cliente dialog = new cliente();
+		dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+		dialog.setVisible(true);
+        dialog.run();
+    }
+}
