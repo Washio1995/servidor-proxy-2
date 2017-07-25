@@ -1,0 +1,90 @@
+package proyecto2;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.util.HashSet;
+import java.util.Properties;
+import java.util.StringTokenizer;
+
+
+public class servidor {
+	private static final int PORT = 9000;
+
+	private static HashSet<PrintWriter> writers = new HashSet<PrintWriter>();
+
+	public static void main(String[] args) throws IOException {
+		// TODO Auto-generated method stub
+		System.out.println("The chat server is running.");//imprime en consola "The chat server is running."
+		ServerSocket listener = new ServerSocket(PORT);//declara el servidor listener
+		try {
+			while (true) {//si es verdader
+				new Handler(listener.accept()).start();//metodo Handler comienza y server accept
+			}
+		} finally {
+			listener.close();//finaliza servidor.
+		}
+	}
+	private static class Handler extends Thread {// extends Thread para  redefinir el método run
+		private Socket socket;//establecimiento de la conexión de red y del envío de datos a través de ella.
+		private BufferedReader in;// Para leer del teclado con el método readLine()
+		private PrintWriter out;//  Para poder mandar el string leido al cliente
+
+		/**
+		 * Constructs a handler thread, squirreling away the socket.
+		 * All the interesting work is done in the run method.
+		 */
+		public Handler(Socket socket) {//metodo Handler recibe el socket
+			this.socket = socket;//socket declarado a fuera del metodo es igual al socket recibido.
+		}
+
+
+		public void run() {	
+			String mensajeServidor;
+			String b="";		
+			StringTokenizer tokens;
+			try {
+
+				in = new BufferedReader(new InputStreamReader(socket.getInputStream())); //lee el socket ingresado.
+				out= new PrintWriter(socket.getOutputStream(), true);//escribir datos en cliente.
+
+				while (true) {
+					mensajeServidor = in.readLine();//lee los datos de cliente
+					if (mensajeServidor == null) {//si es vacio
+						return;//regresa
+					}else 
+						tokens=new StringTokenizer(mensajeServidor," ");//divide al string en tokens cada que encuentra espacio
+					int nDatos=tokens.countTokens();//cuenta cuantos tokens
+					while(tokens.hasMoreTokens()){
+						String str=tokens.nextToken();//los tokens son almacenados en str
+						if(str.equals("Pamela")||str.equals("hola")||str.equals("como")||str.equals("mundo")){//si hay estas palabras
+							b= str +" es una mala palabra envie algo bonito"+"\n";
+							out.println("Error "+ b);//envia a cliente el error
+						}else{//caso contrario 
+							out.println("correcto ");
+						}		
+				} 
+				}
+			}catch (IOException e) {//en caso de error
+				System.out.println("\n"+ e+ "no hay coneccion");//imprimir en consola el error 
+			}  finally {
+				// This client is going down!  Remove its name and its print
+				// writer from the sets, and close its socket.
+
+				if (out != null) {
+					writers.remove(out);
+				}
+				try {
+					socket.close();
+					System.out.println("Fin de la conexión");
+				} catch (IOException e) {
+				}
+				//Se finaliza la conexión con el cliente
+			}
+		} 
+	}
+			 
+}
