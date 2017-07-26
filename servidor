@@ -70,19 +70,19 @@ public class servidor {
 				}
 			}catch (IOException e) {//en caso de error
 				System.out.println("\n"+ e+ "no hay coneccion");//imprimir en consola el error 
-			}  finally {
-				// This client is going down!  Remove its name and its print
-				// writer from the sets, and close its socket.
-
+			}   finally {
+				// El cliente sera cerrado, se removera su nombre y las impresiones de pantall
+				// Se cierra el socket
+				
 				if (out != null) {
 					writers.remove(out);
 				}
 				try {
 					socket.close();
-					System.out.println("Fin de la conexión");
+					System.out.println("Fin de la conexiÛn");
 				} catch (IOException e) {
 				}
-				//Se finaliza la conexión con el cliente
+				//Se finaliza la conexiÛn con el cliente
 			}
 		} 
 	}
